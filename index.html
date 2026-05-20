@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Birthday Card</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap"
+    rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background:
+        radial-gradient(circle at top,
+          #5365d6 0%,
+          #20213b 40%,
+          #09090f 100%);
+      font-family: 'Inter', sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        url("https://www.transparenttextures.com/patterns/noise.png");
+      opacity: .035;
+      pointer-events: none;
+    }
+
+    .stack {
+      position: relative;
+      width: min(78vw, 1200px);
+      height: min(82vh, 820px);
+      aspect-ratio: 16/10;
+      perspective: 2400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .paper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background:
+        linear-gradient(145deg,
+          #fffdf8,
+          #f3ede4);
+      border-radius: 24px;
+      padding: clamp(30px, 5vw, 90px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transform-origin: top center;
+      transform-style: preserve-3d;
+      cursor: grab;
+      will-change: transform, filter;
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, .25),
+        inset 0 0 0 1px rgba(0, 0, 0, .04);
+      transition:
+        box-shadow .35s ease,
+        transform .35s ease;
+
+      /* CRITICAL FOR MOBILE: Prevents page scroll when dragging the card */
+      touch-action: none;
+    }
+
+    .paper::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -8px;
+      width: 100%;
+      height: 12px;
+      background: rgba(0, 0, 0, .06);
+      filter: blur(10px);
+      opacity: .6;
+    }
+
+    .paper:hover {
+      box-shadow:
+        0 45px 120px rgba(0, 0, 0, .32),
+        inset 0 0 0 1px rgba(0, 0, 0, .04);
+    }
+
+    .paper:nth-child(1) {
+      z-index: 5;
+      top: 0px;
+    }
+
+    .paper:nth-child(2) {
+      z-index: 4;
+      top: 14px;
+      scale: .985;
+    }
+
+    .paper:nth-child(3) {
+      z-index: 3;
+      top: 28px;
+      scale: .97;
+    }
+
+    .paper:nth-child(4) {
+      z-index: 2;
+      top: 42px;
+      scale: .955;
+    }
+
+    .paper:nth-child(5) {
+      z-index: 1;
+      top: 56px;
+      scale: .94;
+    }
+
+    .number {
+      font-size: .8rem;
+      letter-spacing: 4px;
+      opacity: .35;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.4rem, 5.5vw, 5rem);
+      line-height: .9;
+      margin-bottom: 30px;
+      color: #111;
+    }
+
+    p {
+      font-size: clamp(.95rem, 1.1vw, 1.35rem);
+      line-height: 1.9;
+      max-width: min(700px, 90%);
+      color: #444;
+    }
+
+    .final {
+      background:
+        linear-gradient(145deg,
+          #111827,
+          #1f2937);
+    }
+
+    .final h1 {
+      color: white;
+    }
+
+    .final p {
+      color: rgba(255, 255, 255, .72);
+    }
+
+    .counter {
+      position: absolute;
+      bottom: 28px;
+      right: 34px;
+      color: rgba(255, 255, 255, .55);
+      font-size: .82rem;
+      letter-spacing: 3px;
+      z-index: 300;
+    }
+
+    .nav {
+      position: absolute;
+      right: -78px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 500;
+    }
+
+    .nav-arrow {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(248, 244, 236, .92);
+      color: #111827;
+      font-size: .95rem;
+      border: 1px solid rgba(255, 255, 255, .4);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+      cursor: pointer;
+      transition:
+        transform .25s ease,
+        background .25s ease,
+        box-shadow .25s ease;
+      user-select: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-arrow:hover {
+      transform: scale(1.08);
+      background: white;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, .25);
+    }
+
+    .nav-arrow:active {
+      transform: scale(.94);
+    }
+
+    /* INTRO PAGE */
+    .intro {
+      background:
+        linear-gradient(145deg,
+          #fffaf3,
+          #f6eee3);
+      overflow: hidden;
+    }
+
+    .flower {
+      position: absolute;
+      font-size: clamp(1.5rem, 3vw, 3rem);
+      opacity: .18;
+      user-select: none;
+      animation: floatFlower 6s ease-in-out infinite;
+    }
+
+    .flower1 {
+      top: 8%;
+      left: 10%;
+    }
+
+    .flower2 {
+      right: 12%;
+      top: 18%;
+      animation-delay: 2s;
+    }
+
+    .flower3 {
+      bottom: 14%;
+      left: 18%;
+      animation-delay: 4s;
+    }
+
+    .flower4 {
+      right: 18%;
+      bottom: 12%;
+      animation-delay: 1s;
+    }
+
+    @keyframes floatFlower {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-10px) rotate(4deg);
+      }
+
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+    }
+
+    .note {
+      position: absolute;
+      bottom: 42px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      opacity: .45;
+      font-style: italic;
+    }
+
+    /* PAGE 2 */
+    .page-two {
+      background:
+        linear-gradient(145deg,
+          #fffaf5,
+          #f2ebe3);
+      position: relative;
+    }
+
+    .page-two h1 {
+      margin-bottom: 40px;
+    }
+
+    .page-two p {
+      max-width: 760px;
+      font-size: clamp(1rem, 1.15vw, 1.4rem);
+      line-height: 2;
+      color: #3b3b3b;
+    }
+
+    .sparkle {
+      position: absolute;
+      opacity: .18;
+      animation: drift 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .sparkle1 {
+      top: 12%;
+      right: 14%;
+      font-size: 2rem;
+    }
+
+    .sparkle2 {
+      bottom: 18%;
+      left: 12%;
+      font-size: 1.6rem;
+      animation-delay: 2s;
+    }
+
+    .sparkle3 {
+      top: 50%;
+      right: 8%;
+      font-size: 1.2rem;
+      animation-delay: 4s;
+    }
+
+    @keyframes drift {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-8px) rotate(8deg);
+      }
+
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+    }
+
+    .tape {
+      position: absolute;
+      width: 120px;
+      height: 30px;
+      background: rgba(255, 255, 255, .35);
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, .25);
+      opacity: .6;
+    }
+
+    .tape1 {
+      top: 26px;
+      left: 50px;
+      transform: rotate(-8deg);
+    }
+
+    .tape2 {
+      right: 70px;
+      bottom: 36px;
+      transform: rotate(12deg);
+    }
+
+    .scribble {
+      position: absolute;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      opacity: .28;
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+
+    .scribble1 {
+      top: 18%;
+      right: 10%;
+      transform: rotate(-6deg);
+      font-size: 1.1rem;
+    }
+
+    .scribble2 {
+      bottom: 16%;
+      left: 10%;
+      transform: rotate(5deg);
+      font-size: 1rem;
+    }
+
+    .constellation {
+      position: absolute;
+      top: 22%;
+      left: 8%;
+      width: 180px;
+      height: 80px;
+      border-top: 1px dashed rgba(0, 0, 0, .12);
+      border-right: 1px dashed rgba(0, 0, 0, .12);
+      border-radius: 0 40px 0 0;
+      transform: rotate(-8deg);
+      opacity: .5;
+    }
+
+    /* VINYL */
+    .vinyl-page {
+      gap: 50px;
+    }
+
+    .vinyl-wrapper {
+      position: relative;
+      width: min(420px, 60vw);
+      height: min(420px, 60vw);
+      margin: auto;
+      transform: translateX(25px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .album-cover {
+      position: relative;
+      width: 70%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      z-index: 5;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .35);
+    }
+
+    .album-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .vinyl {
+      position: absolute;
+      width: 66%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      right: 8%;
+      overflow: hidden;
+      background:
+        repeating-radial-gradient(circle,
+          #111 0px,
+          #111 2px,
+          #1c1c1c 3px,
+          #111 4px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+      z-index: 2;
+    }
+
+    .vinyl-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 22%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #f8f4ec;
+    }
+
+    .shine {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        linear-gradient(130deg,
+          transparent 20%,
+          rgba(255, 255, 255, .14),
+          transparent 70%);
+      animation: shineMove 5s linear infinite;
+    }
+
+    @keyframes shineMove {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* MOBILE OPTIMIZATIONS */
+    @media(max-width: 768px) {
+      .stack {
+        width: 88vw;
+        height: 70vh;
+        aspect-ratio: auto;
+      }
+
+      .paper {
+        border-radius: 18px;
+        padding: 28px;
+      }
+
+      .nav {
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -65px;
+        transform: translateX(-50%);
+        flex-direction: row;
+        gap: 20px;
+      }
+
+      .nav-arrow {
+        width: 42px;
+        height: 42px;
+        font-size: .9rem;
+      }
+
+      .page-two p {
+        line-height: 1.6;
+        font-size: .95rem;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+        font-size: clamp(2rem, 8vw, 3rem);
+      }
+
+      p {
+        font-size: 0.95rem;
+      }
+
+      .number {
+        margin-bottom: 15px;
+      }
+
+      .vinyl-page {
+        gap: 24px;
+        align-items: center;
+        text-align: center;
+      }
+
+      .vinyl-wrapper {
+        width: min(260px, 72vw);
+        height: min(260px, 72vw);
+        transform: none;
+        margin: 0 auto;
+        overflow: visible;
+      }
+
+      .album-cover {
+        width: 72%;
+        z-index: 3;
+      }
+
+      .vinyl {
+        width: 62%;
+        right: -2%;
+      }
+
+      .counter {
+        top: 20px;
+        bottom: auto;
+        right: 20px;
+      }
+    }
+
+    /* MINIMAL LOCK */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background:
+        radial-gradient(circle at top,
+          #5365d6 0%,
+          #20213b 40%,
+          #09090f 100%);
+    }
+
+    .lock-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        url("https://www.transparenttextures.com/patterns/noise.png");
+      opacity: .03;
+    }
+
+    .minimal-lock {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      width: min(85vw, 340px);
+    }
+
+    .lock-question {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: rgba(255, 255, 255, .92);
+      letter-spacing: .4px;
+    }
+
+    #passwordInput {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, .22);
+      padding: 10px 2px;
+      color: white;
+      font-size: .95rem;
+      text-align: center;
+      outline: none;
+      transition:
+        border-color .25s ease,
+        opacity .25s ease;
+    }
+
+    #passwordInput:focus {
+      border-color: rgba(255, 255, 255, .6);
+    }
+
+    #passwordInput::placeholder {
+      color: rgba(255, 255, 255, .28);
+    }
+
+    .shake {
+      animation: shake .28s linear;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translateX(0px);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      50% {
+        transform: translateX(5px);
+      }
+
+      75% {
+        transform: translateX(-3px);
+      }
+
+      100% {
+        transform: translateX(0px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOCK SCREEN -->
+  <div class="lock-screen" id="lockScreen">
+    <div class="minimal-lock">
+      <p class="lock-question">
+        enter your pet's name
+      </p>
+      <input type="password" id="passwordInput" placeholder="password">
+    </div>
+  </div>
+
+  <div class="counter">
+    01 / 07
+  </div>
+
+  <div class="stack">
+
+    <!-- PAGE 1 -->
+    <div class="paper intro">
+      <div class="flower flower1">✿</div>
+      <div class="flower flower2">❀</div>
+      <div class="flower flower3">✾</div>
+      <div class="flower flower4">✿</div>
+
+      <div class="number">01</div>
+      <h1>happy<br>birthday</h1>
+      <p>top 5 women ever;</p>
+
+      <div class="note">
+        I hope you are a bit heavy now
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="paper page-two">
+      <div class="sparkle sparkle1">✦</div>
+      <div class="sparkle sparkle2">⋆</div>
+      <div class="sparkle sparkle3">✧</div>
+
+      <div class="tape tape1"></div>
+      <div class="tape tape2"></div>
+
+      <div class="scribble scribble1">fuck yeah</div>
+      <div class="scribble scribble2">19</div>
+
+      <div class="constellation"></div>
+
+      <div class="number">02</div>
+      <h1>Go</h1>
+      <p>
+        everyone is older now,
+        rawer,
+        kinder,
+        more honest —
+        too exhausted to disguise
+        their humanity any longer,
+        too aware of love’s rarity
+        and fleetingness
+        not to seize it while they can.
+        <br><br>
+        surrendering.
+        not growing into some
+        perfect shape,
+        just letting a free mind
+        become whatever it becomes.
+      </p>
+    </div>
+
+    <!-- PAGE 3 -->
+    <div class="paper vinyl-page">
+      <div class="number">03</div>
+      <div class="vinyl-wrapper">
+        <div class="album-cover">
+          <img src="https://upload.wikimedia.org/wikipedia/en/b/b2/Lorde_-_Melodrama.png">
+        </div>
+        <div class="vinyl">
+          <div class="shine"></div>
+          <div class="vinyl-center"></div>
+        </div>
+      </div>
+      <div>
+        <h1>melodrama</h1>
+        <p>I listened to this before making this, track 6 is my favorite.</p>
+      </div>
+    </div>
+
+    <!-- PAGE 4 -->
+    <div class="paper">
+      <div class="number">04</div>
+      <h1>memory</h1>
+      <p>
+        fav of you holding that lip balm in the middle of flats, showing off your braces as bright as you can, never
+        seen like that never will
+      </p>
+    </div>
+
+    <!-- PAGE 5 -->
+    <div class="paper">
+      <div class="number">05</div>
+      <h1>cs</h1>
+      <p>
+        i thought for so long that time was like a line, that our moments were laid out like dominoes, and that they
+        fell, one into another and on it went, just days tipping, one into the next, into the next, in a long line
+        between the
+        beginning and the end. but i was wrong. it's not like that at all. our moments fall around us like rain. or
+        snow. or confetti.
+      </p>
+    </div>
+
+    <!-- PAGE 6 -->
+    <div class="paper">
+      <div class="number">06</div>
+      <h1>last</h1>
+      <p>
+        I'd like to think when we held hands for the first time for a minute completely & I did too. I am
+        so ashamed but I see it now,
+        you should be yourself & haven't felt a presence so strong & calm.
+      </p>
+    </div>
+
+    <!-- PAGE 7 -->
+    <div class="paper final">
+      <div class="number">07</div>
+      <h1>:)</h1>
+      <p>
+        thank you for being here.<br>
+        I'm losing my hair<br>
+        Happy 19th birthday.
+      </p>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav">
+      <div class="nav-arrow up">↑</div>
+      <div class="nav-arrow down">↓</div>
+    </div>
+
+  </div>
+
+  <script>
+    const papers = [...document.querySelectorAll(".paper")];
+    const counter = document.querySelector(".counter");
+    const upArrow = document.querySelector(".up");
+    const downArrow = document.querySelector(".down");
+    const vinyl = document.querySelector(".vinyl");
+
+    let activePaper = null;
+    let startY = 0;
+    let currentMove = 0;
+    let vinylSpin = null;
+    let isAnimating = false;
+
+    const originalZ = papers.map((p) =>
+      parseInt(getComputedStyle(p).zIndex) || 0
+    );
+
+    papers.forEach((paper, i) => {
+      gsap.to(paper, {
+        y: `+=${6 + i}`,
+        duration: 2 + i * 0.15,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+      gsap.to(".stack", {
+        rotateY: x * 0.4,
+        rotateX: -y * 0.3,
+        duration: 1.2,
+        ease: "power3.out"
+      });
+    });
+
+    const setters = papers.map((paper) => ({
+      y: gsap.quickTo(paper, "y", { duration: 0.18, ease: "power2.out" }),
+      rotate: gsap.quickTo(paper, "rotation", { duration: 0.2, ease: "power2.out" }),
+      rotateX: gsap.quickTo(paper, "rotateX", { duration: 0.25, ease: "power2.out" }),
+      scale: gsap.quickTo(paper, "scale", { duration: 0.2, ease: "power2.out" })
+    }));
+
+    function updateCounter() {
+      let removed = papers.filter(p => p.classList.contains("removed")).length;
+      let current = Math.min(7, removed + 1);
+      counter.innerHTML = `0${current} / 07`;
+    }
+
+    function checkVinyl() {
+      const removedCount = papers.filter(p => p.classList.contains("removed")).length;
+      if (removedCount === 2) {
+        gsap.to(vinyl, {
+          x: window.innerWidth < 768 ? 45 : 120,
+          duration: 1.8,
+          ease: "expo.out"
+        });
+        if (!vinylSpin) {
+          vinylSpin = gsap.to(vinyl, {
+            rotation: "+=360",
+            duration: 8,
+            repeat: -1,
+            ease: "none"
+          });
+        }
+      } else {
+        gsap.to(vinyl, { x: 0, duration: 1.2, ease: "expo.out" });
+        if (vinylSpin) {
+          vinylSpin.kill();
+          vinylSpin = null;
+        }
+        gsap.set(vinyl, { rotation: 0 });
+      }
+    }
+
+    function updateStack() {
+      const activeCards = papers.filter(p => !p.classList.contains("removed"));
+      activeCards.forEach((paper, index) => {
+        gsap.to(paper, {
+          top: index * 14,
+          scale: 1 - (index * 0.015),
+          zIndex: papers.length - index,
+          duration: 0.4,
+          ease: "power2.out"
+        });
+      });
+    }
+
+    function removePaper(paper) {
+      if (!paper || isAnimating) return;
+      if (paper.classList.contains("removed")) return;
+
+      isAnimating = true;
+      paper.classList.add("removed");
+      gsap.set(paper, { zIndex: 0 });
+      updateStack();
+
+      gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+        }
+      })
+        .to(paper, {
+          y: -120,
+          rotateX: 14,
+          rotation: -2,
+          duration: 0.18,
+          ease: "power2.out"
+        })
+        .to(paper, {
+          y: -1600,
+          rotation: 8,
+          rotateX: -25,
+          filter: "blur(6px)",
+          duration: 1.25,
+          ease: "expo.inOut"
+        }, "-=0.05");
+
+      updateCounter();
+      checkVinyl();
+    }
+
+    function restorePaper() {
+      if (isAnimating) return;
+      const removed = papers.filter(p => p.classList.contains("removed"));
+      const last = removed[removed.length - 1];
+
+      if (!last) return;
+
+      isAnimating = true;
+      last.classList.remove("removed");
+
+      const idx = papers.indexOf(last);
+      gsap.set(last, { zIndex: originalZ[idx] });
+      updateStack();
+
+      gsap.fromTo(last, {
+        y: -1400,
+        rotateX: -10,
+        rotation: 1.2,
+        filter: "blur(4px)"
+      }, {
+        y: 0,
+        rotateX: 0,
+        rotation: 0,
+        filter: "blur(0px)",
+        duration: .95,
+        ease: "power4.out",
+        onComplete: () => {
+          isAnimating = false;
+        }
+      });
+
+      updateCounter();
+      checkVinyl();
+    }
+
+    papers.forEach((paper, index) => {
+      paper.addEventListener("pointerdown", (e) => {
+        if (isAnimating) return;
+        if (paper.classList.contains("removed")) return;
+
+        activePaper = {
+          el: paper,
+          index: index
+        };
+
+        startY = e.clientY;
+        paper.setPointerCapture(e.pointerId);
+      });
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!activePaper) return;
+
+      currentMove = Math.min(0, e.clientY - startY);
+
+      const paper = activePaper.el;
+      const set = setters[activePaper.index];
+
+      let resisted = currentMove * 0.7;
+      let rotate = resisted / 140;
+      let rotateX = Math.abs(resisted) / 18;
+      let scale = 1 + Math.abs(resisted) / 9000;
+      let skew = resisted / 18;
+
+      gsap.set(paper, { skewX: skew * 0.15 });
+      set.y(resisted);
+      set.rotate(rotate);
+      set.rotateX(rotateX);
+      set.scale(scale);
+    });
+
+    window.addEventListener("pointerup", () => {
+      if (!activePaper) return;
+
+      const paper = activePaper.el;
+      const set = setters[activePaper.index];
+
+      if (currentMove < -120) {
+        removePaper(paper);
+      } else {
+        set.y(0);
+        set.rotate(0);
+        set.rotateX(0);
+        set.scale(1);
+        gsap.to(paper, {
+          skewX: 0,
+          duration: .4,
+          ease: "power2.out"
+        });
+      }
+      activePaper = null;
+    });
+
+    downArrow.addEventListener("click", () => {
+      const current = papers.find(p => !p.classList.contains("removed"));
+      removePaper(current);
+    });
+
+    upArrow.addEventListener("click", () => {
+      restorePaper();
+    });
+
+    /* LOCK SYSTEM */
+    const lockScreen = document.getElementById("lockScreen");
+    const passwordInput = document.getElementById("passwordInput");
+
+    function unlockSite() {
+      const value = passwordInput.value.trim().toLowerCase();
+
+      if (value === "toto") {
+        gsap.to(lockScreen, {
+          opacity: 0,
+          duration: 1,
+          ease: "power2.out",
+          onComplete: () => {
+            lockScreen.style.display = "none";
+          }
+        });
+      } else {
+        passwordInput.classList.add("shake");
+
+        setTimeout(() => {
+          passwordInput.classList.remove("shake");
+        }, 300);
+      }
+    }
+
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        unlockSite();
+      }
+    });
+
+  </script>
+</body>
+
+</html>
