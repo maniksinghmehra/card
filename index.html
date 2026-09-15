@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="card.png" />
 
   <title>Look at me
 </title>
@@ -833,23 +834,30 @@
       });
     });
 
-    window.addEventListener("mousemove", (e) => {
+    const stackRotateY = gsap.quickTo(".stack", "rotationY", {
+      duration: 1.2,
+      ease: "power3.out"
+    });
+    const stackRotateX = gsap.quickTo(".stack", "rotationX", {
+      duration: 1.2,
+      ease: "power3.out"
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch" || activePaper) return;
+
       const x = (e.clientX / window.innerWidth - 0.5) * 20;
       const y = (e.clientY / window.innerHeight - 0.5) * 20;
-
-      gsap.to(".stack", {
-        rotateY: x * 0.4,
-        rotateX: -y * 0.3,
-        duration: 1.2,
-        ease: "power3.out"
-      });
-    });
+      stackRotateY(x * 0.4);
+      stackRotateX(-y * 0.3);
+    }, { passive: true });
 
     const setters = papers.map((paper) => ({
       y: gsap.quickTo(paper, "y", { duration: 0.18, ease: "power2.out" }),
       rotate: gsap.quickTo(paper, "rotation", { duration: 0.2, ease: "power2.out" }),
       rotateX: gsap.quickTo(paper, "rotateX", { duration: 0.25, ease: "power2.out" }),
-      scale: gsap.quickTo(paper, "scale", { duration: 0.2, ease: "power2.out" })
+      scale: gsap.quickTo(paper, "scale", { duration: 0.2, ease: "power2.out" }),
+      skew: gsap.quickTo(paper, "skewX", { duration: 0.2, ease: "power2.out" })
     }));
 
     function updateCounter() {
@@ -981,28 +989,35 @@
       });
     });
 
+    let pendingPointerMove = null;
+    let pointerFrame = null;
+
     window.addEventListener("pointermove", (e) => {
       if (!activePaper) return;
 
-      currentMove = Math.min(0, e.clientY - startY);
+      pendingPointerMove = e;
+      if (pointerFrame) return;
 
-      const paper = activePaper.el;
-      const set = setters[activePaper.index];
+      pointerFrame = requestAnimationFrame(() => {
+        pointerFrame = null;
+        if (!activePaper || !pendingPointerMove) return;
 
-      let resisted = currentMove * 0.7;
-      let rotate = resisted / 140;
-      let rotateX = Math.abs(resisted) / 18;
-      let scale = 1 + Math.abs(resisted) / 9000;
-      let skew = resisted / 18;
+        currentMove = Math.min(0, pendingPointerMove.clientY - startY);
+        pendingPointerMove = null;
 
-      gsap.set(paper, { skewX: skew * 0.15 });
-      set.y(resisted);
-      set.rotate(rotate);
-      set.rotateX(rotateX);
-      set.scale(scale);
+        const paper = activePaper.el;
+        const set = setters[activePaper.index];
+        const resisted = currentMove * 0.7;
+
+        set.skew(resisted / 18 * 0.15);
+        set.y(resisted);
+        set.rotate(resisted / 140);
+        set.rotateX(Math.abs(resisted) / 18);
+        set.scale(1 + Math.abs(resisted) / 9000);
+      });
     });
 
-    window.addEventListener("pointerup", () => {
+    function finishPointer(pointerId) {
       if (!activePaper) return;
 
       const paper = activePaper.el;
@@ -1015,14 +1030,21 @@
         set.rotate(0);
         set.rotateX(0);
         set.scale(1);
-        gsap.to(paper, {
-          skewX: 0,
-          duration: .4,
-          ease: "power2.out"
-        });
+        set.skew(0);
       }
       activePaper = null;
-    });
+      pendingPointerMove = null;
+      if (pointerFrame) {
+        cancelAnimationFrame(pointerFrame);
+        pointerFrame = null;
+      }
+      if (pointerId !== undefined && paper.hasPointerCapture(pointerId)) {
+        paper.releasePointerCapture(pointerId);
+      }
+    }
+
+    window.addEventListener("pointerup", (e) => finishPointer(e.pointerId));
+    window.addEventListener("pointercancel", (e) => finishPointer(e.pointerId));
 
     downArrow.addEventListener("click", () => {
       const current = papers.find(p => !p.classList.contains("removed"));
